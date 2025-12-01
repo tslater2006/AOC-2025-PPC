@@ -1,0 +1,97 @@
+import AOC2025:BaseDay;
+
+class Day1 extends AOC2025:BaseDay
+   method ParseInput(); /* Implements AOC2025:BaseDay.ParseInput */
+   method SolvePart1() Returns string; /* Implements AOC2025:BaseDay.SolvePart1 */
+   method SolvePart2() Returns string; /* Implements AOC2025:BaseDay.SolvePart2 */
+   method Day1();
+private
+   instance array of number &rotations;
+   
+end-class;
+
+method Day1
+   %Super = create AOC2025:BaseDay(1, False);
+   %This.Developing = True;
+   
+end-method;
+
+method ParseInput
+   /+ Extends/implements AOC2025:BaseDay.ParseInput +/
+   &rotations = CreateArrayRept(0, 0);
+   Local integer &x;
+   For &x = 1 To %This.Lines.Len
+      
+      Local string &line = %This.Lines [&x];
+      &line = Substitute(&line, "R", "");
+      &line = Substitute(&line, "L", "-");
+      &rotations.Push(Value(&line));
+   End-For;
+end-method;
+
+method SolvePart1
+   /+ Returns String +/
+   /+ Extends/implements AOC2025:BaseDay.SolvePart1 +/
+   Local number &dial = 50;
+   Local number &zeroPoints = 0;
+   
+   Local integer &x;
+   For &x = 1 To &rotations.Len
+      
+      /* Move left or right, we can mod by 100 to ignore full circles around the dial */
+      &dial = &dial + Mod(&rotations [&x], 100);
+      
+      /* If out of range, bring it into the positives and then remove full circles */
+      If (&dial < 0 Or
+            &dial > 99) Then
+         &dial = Mod(&dial + 100, 100);
+      End-If;
+      
+      /* Dial hit zero, count it */
+      If (&dial = 0) Then
+         &zeroPoints = &zeroPoints + 1;
+      End-If;
+   End-For;
+   Return String(&zeroPoints);
+end-method;
+
+
+method SolvePart2
+   /+ Returns String +/
+   /+ Extends/implements AOC2025:BaseDay.SolvePart2 +/
+   
+   Local number &dial = 50;
+   Local number &zeroPointCrossings = 0;
+   
+   Local integer &x;
+   For &x = 1 To &rotations.Len
+      Local boolean &dialStartsAtZero = (&dial = 0);
+      
+      Local integer &fullRotations = Abs(Idiv(&rotations [&x], 100));
+      &zeroPointCrossings = &zeroPointCrossings + &fullRotations;
+      
+      &dial = &dial + Mod(&rotations [&x], 100);
+      
+      /* If the dial was at 0 before the rotation, we just normalize to 0-99 but don't count any "crossings" */
+      If (&dialStartsAtZero) Then
+         &dial = Mod(&dial + 100, 100);
+         Continue;
+      End-If;
+      
+      /* We landed on a zero, count it */
+      If (&dial = 0) Then
+         &zeroPointCrossings = &zeroPointCrossings + 1
+      End-If;
+      
+      /* We went past a zero, count it */
+      If (&dial < 0 Or
+            &dial > 99) Then
+         &dial = Mod(&dial + 100, 100);
+         &zeroPointCrossings = &zeroPointCrossings + 1
+      End-If;
+      
+   End-For;
+   
+   Return String(&zeroPointCrossings);
+end-method;
+
