@@ -1,0 +1,165 @@
+import AOC2025:BaseDay;
+
+class Day2 extends AOC2025:BaseDay
+   method ParseInput(); /* Implements AOC2025:BaseDay.ParseInput */
+   method SolvePart1() Returns string; /* Implements AOC2025:BaseDay.SolvePart1 */
+   method SolvePart2() Returns string; /* Implements AOC2025:BaseDay.SolvePart2 */
+   method Day2();
+private
+   instance array of array of string &ranges;
+   
+   method PrefixToExpanded(&prefix As string, &targetLength As number) Returns number;
+end-class;
+
+method Day2
+   %Super = create AOC2025:BaseDay(2, False);
+   %This.Developing = False;
+   
+end-method;
+
+method ParseInput
+   /+ Extends/implements AOC2025:BaseDay.ParseInput +/
+   
+   &ranges = CreateArrayRept(CreateArrayRept("", 0), 0);
+   
+   Local array of string &pairs = Split(%This.Lines [1], ",");
+   
+   Local integer &x;
+   For &x = 1 To &pairs.Len
+      &ranges.Push(Split(&pairs [&x], "-"));
+   End-For;
+   
+end-method;
+
+method SolvePart1
+   /+ Returns String +/
+   /+ Extends/implements AOC2025:BaseDay.SolvePart1 +/
+   
+   Local integer &x;
+   Local number &invalidIDs;
+   Local number &invalidSum;
+   
+   /* &ranges is 2d array of string */
+   For &x = 1 To &ranges.Len
+      
+      /* Both start/end are odd numbers, cannot have any invalid in here */
+      If (Mod(Len(&ranges [&x][1]), 2) <> 0 And
+            Mod(Len(&ranges [&x][2]), 2) <> 0) Then
+         Continue;
+      End-If;
+      
+      Local string &rangeStart = &ranges [&x][1];
+      Local string &rangeStop = &ranges [&x][2];
+      
+      /* normalize to the next highest even length number */
+      If (Mod(Len(&rangeStart), 2) <> 0) Then
+         &rangeStart = String((10**Len(&rangeStart)));
+      End-If;
+      
+      /* normalize to the next lowest even length number */
+      If (Mod(Len(&rangeStop), 2) <> 0) Then
+         &rangeStop = String((10**Len(&rangeStart)) - 1);
+      End-If;
+      
+      /* Make numbers to compare >= and <= */
+      Local number &startValue = Value(&rangeStart);
+      Local number &stopValue = Value(&rangeStop);
+      
+      Local string &startHalf = Substring(&rangeStart, 1, Len(&rangeStart) / 2);
+      Local string &endHalf = Substring(&rangeStop, 1, Len(&rangeStart) / 2);
+      
+      Local integer &y;
+      /* For each number from upper half to lower half inclusive */
+      For &y = Value(&startHalf) To Value(&endHalf)
+         
+         /* Create the number duplicated so 123 becomes 123123 */
+         Local number &duplicated = (10**Len(&startHalf) * &y) + &y;
+         
+         /* If its in the range count it */
+         If (&duplicated >= &startValue And
+               &duplicated <= &stopValue) Then
+            &invalidIDs = &invalidIDs + 1;
+            &invalidSum = &invalidSum + &duplicated;
+         End-If;
+      End-For;
+   End-For;
+   
+   Return String(&invalidSum);
+end-method;
+
+
+method SolvePart2
+   /+ Returns String +/
+   /+ Extends/implements AOC2025:BaseDay.SolvePart2 +/
+   Local integer &x;
+   Local array of array of string &splitRanges = CreateArrayRept(&ranges [1], 0);
+   
+   For &x = 1 To &ranges.Len
+      
+      Local string &rangeStart = &ranges [&x][1];
+      Local string &rangeStop = &ranges [&x][2];
+      
+      If (Len(&rangeStart) <> Len(&rangeStop)) Then
+         /* split into 2 ranges */
+         
+         Local string &newRangeStart = String((10**Len(&rangeStart)));
+         Local string &newRangeStop = String((10**Len(&rangeStart)) - 1);
+         &splitRanges.Push(CreateArray(&rangeStart, &newRangeStop));
+         &splitRanges.Push(CreateArray(&newRangeStart, &rangeStop));
+      Else
+         &splitRanges.Push(&ranges [&x]);
+      End-If;
+   End-For;
+   
+   Local array of number &foundInvalids = CreateArrayRept(0, 0);
+   Local number &invalidSum = 0;
+   For &x = 1 To &splitRanges.Len
+      &rangeStart = &splitRanges [&x][1];
+      &rangeStop = &splitRanges [&x][2];
+      Local number &startValue = Value(&rangeStart);
+      Local number &stopValue = Value(&rangeStop);
+      
+      Local integer &prefixSize;
+      For &prefixSize = 1 To Len(&rangeStart) / 2
+         Local string &leftPrefix = Substring(&rangeStart, 1, &prefixSize);
+         Local string &rightPrefix = Substring(&rangeStop, 1, &prefixSize);
+         
+         Local integer &currentPrefix;
+         For &currentPrefix = Value(&leftPrefix) To Value(&rightPrefix)
+            Local number &expandedValue = %This.PrefixToExpanded(String(&currentPrefix), Len(&rangeStart));
+            If (&expandedValue <> - 1 And
+                  &expandedValue >= &startValue And
+                  &expandedValue <= &stopValue And
+                  (&foundInvalids.Find(&expandedValue) = 0)) Then
+               &foundInvalids.Push(&expandedValue);
+               &invalidSum = &invalidSum + &expandedValue;
+            End-If;
+         End-For;
+      End-For;
+   End-For;
+   
+   
+   Return String(&invalidSum);
+end-method;
+
+
+method PrefixToExpanded
+   /+ &prefix as String, +/
+   /+ &targetLength as Number +/
+   /+ Returns Number +/
+   /* Ensure &prefix is a multiple of &targetLength */;
+   Local float &test2 = Idiv(&targetLength, Len(&prefix));
+   
+   If (&targetLength / Len(&prefix) <> Idiv(&targetLength, Len(&prefix))) Then
+      Return - 1;
+   End-If;
+   Local number &prefixValue = Value(&prefix);
+   Local number &multiplier = 10**Len(&prefix);
+   Local number &expandedValue = 0;
+   Local integer &x;
+   For &x = 1 To &targetLength / Len(&prefix)
+      &expandedValue = (&expandedValue * &multiplier) + &prefixValue;
+   End-For;
+   Return &expandedValue;
+end-method;
+
