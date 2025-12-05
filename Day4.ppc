@@ -14,7 +14,6 @@ private
    method IsRollRemovable(&x As number, &y As number) Returns boolean;
    method RemoveRolls(&coords As array of array of number) Returns array of array of number;
    
-   method PrintGrid();
 end-class;
 
 method Day4
@@ -36,17 +35,6 @@ method ParseInput
    
 end-method;
 
-method PrintGrid
-   Local integer &x, &y;
-   Local string &line = "";
-   For &y = 1 To &grid.Len
-      For &x = 1 To &grid [&y].Len
-         &line = &line | &grid [&y][&x];
-      End-For;
-      %This.Print(&line);
-      &line = "";
-   End-For;
-end-method;
 
 method SolvePart1
    /+ Returns String +/
