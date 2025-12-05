@@ -1,0 +1,95 @@
+import AOC2025:BaseDay;
+
+class Day3 extends AOC2025:BaseDay
+   method ParseInput(); /* Implements AOC2025:BaseDay.ParseInput */
+   method SolvePart1() Returns string; /* Implements AOC2025:BaseDay.SolvePart1 */
+   method SolvePart2() Returns string; /* Implements AOC2025:BaseDay.SolvePart2 */
+   method Day3();
+private
+   instance array of array of number &batteries;
+   method GetBestJoltage(&bank As array of number, &maxOn As number) Returns number;
+end-class;
+
+method Day3
+   %Super = create AOC2025:BaseDay(3, False);
+   %This.Developing = False;
+   
+end-method;
+
+method ParseInput
+   /+ Extends/implements AOC2025:BaseDay.ParseInput +/
+   Local integer &x, &y;
+   &batteries = CreateArrayRept(CreateArrayRept(0, 0), 0);
+   
+   For &x = 1 To %This.Lines.Len
+      
+      Local array of string &bankValues = Split(%This.Lines [&x], "");
+      Local array of number &bankBatteries = CreateArrayRept(0, 0);
+      For &y = 1 To &bankValues.Len
+         &bankBatteries.Push(Value(&bankValues [&y]));
+      End-For;
+      &batteries.Push(&bankBatteries);
+   End-For;
+end-method;
+
+method SolvePart1
+   /+ Returns String +/
+   /+ Extends/implements AOC2025:BaseDay.SolvePart1 +/
+   
+   Local number &x, &totalJoltage;
+   For &x = 1 To &batteries.Len
+      &totalJoltage = &totalJoltage + %This.GetBestJoltage(&batteries [&x], 2);
+   End-For;
+   
+   Return String(&totalJoltage);
+   
+end-method;
+
+method SolvePart2
+   /+ Returns String +/
+   /+ Extends/implements AOC2025:BaseDay.SolvePart2 +/
+   
+   Local number &x;
+   Local number &totalJoltage;
+   For &x = 1 To &batteries.Len
+      &totalJoltage = &totalJoltage + %This.GetBestJoltage(&batteries [&x], 12);
+   End-For;
+   
+   Return String(&totalJoltage);
+end-method;
+
+method GetBestJoltage
+   /+ &bank as Array of Number, +/
+   /+ &maxOn as Number +/
+   /+ Returns Number +/
+   Local number &y, &z;
+   Local array of number &digits = CreateArrayRept(0, &maxOn);
+   For &y = 1 To &bank.Len
+      Local number &joltage = &bank [&y];
+      
+      /* find the best digit to replace (if any) */
+      Local boolean &replacementMade = False;
+      For &z = 1 To &digits.Len
+         
+         If (&replacementMade) Then
+            &digits [&z] = 0;
+            Continue;
+         End-If;
+         
+         If (&joltage > &digits [&z] And
+               (&bank.Len - &y) >= (&digits.Len - &z)) Then
+            &digits [&z] = &joltage;
+            &replacementMade = True;
+         End-If;
+         
+      End-For;
+      
+   End-For;
+   Local number &bankTotal = 0;
+   
+   For &y = 1 To &digits.Len
+      &bankTotal = &bankTotal * 10 + &digits [&y];
+   End-For;
+   Return &bankTotal;
+end-method;
+
