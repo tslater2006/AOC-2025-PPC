@@ -1,0 +1,162 @@
+import AOC2025:BaseDay;
+
+class Day4 extends AOC2025:BaseDay
+   method ParseInput(); /* Implements AOC2025:BaseDay.ParseInput */
+   method SolvePart1() Returns string; /* Implements AOC2025:BaseDay.SolvePart1 */
+   method SolvePart2() Returns string; /* Implements AOC2025:BaseDay.SolvePart2 */
+   method Day4();
+private
+   instance array of array of string &grid;
+   instance number &width;
+   instance number &height;
+   
+   method GetAccessibleRolls(&pointsToCheck As array of array of number) Returns array of array of number;
+   method IsRollRemovable(&x As number, &y As number) Returns boolean;
+   method RemoveRolls(&coords As array of array of number) Returns array of array of number;
+   
+   method PrintGrid();
+end-class;
+
+method Day4
+   %Super = create AOC2025:BaseDay(4, False);
+   %This.Developing = True;
+   
+end-method;
+
+method ParseInput
+   /+ Extends/implements AOC2025:BaseDay.ParseInput +/
+   &grid = CreateArrayRept(CreateArrayRept("", 0), 0);
+   Local number &x;
+   For &x = 1 To %This.Lines.Len
+      &grid.Push(Split(%This.Lines [&x], ""));
+   End-For;
+   
+   &height = &grid.Len;
+   &width = Len(%This.Lines [1]);
+   
+end-method;
+
+method PrintGrid
+   Local integer &x, &y;
+   Local string &line = "";
+   For &y = 1 To &grid.Len
+      For &x = 1 To &grid [&y].Len
+         &line = &line | &grid [&y][&x];
+      End-For;
+      %This.Print(&line);
+      &line = "";
+   End-For;
+end-method;
+
+method SolvePart1
+   /+ Returns String +/
+   /+ Extends/implements AOC2025:BaseDay.SolvePart1 +/
+   Local number &y, &x, &z;
+   Local number &accessibleRolls = %This.GetAccessibleRolls( Null).Len;
+   Return String(&accessibleRolls);
+end-method;
+
+
+/* Note SolvePart2 is destructive to the grid */
+method SolvePart2
+   /+ Returns String +/
+   /+ Extends/implements AOC2025:BaseDay.SolvePart2 +/
+   
+   Local array of array of number &coords = %This.GetAccessibleRolls( Null);
+   Local array of array of number &nextChecks;
+   Local number &removedTotal = 0;
+   
+   While &coords.Len > 0
+      &nextChecks = %This.RemoveRolls(&coords);
+      &removedTotal = &removedTotal + &coords.Len;
+      &coords = %This.GetAccessibleRolls(&nextChecks);
+   End-While;
+   
+   Return String(&removedTotal);
+end-method;
+
+method GetAccessibleRolls
+   /+ &pointsToCheck as Array2 of Number +/
+   /+ Returns Array2 of Number +/
+   Local number &x, &y, &z;
+   Local array of array of number &accessibleRolls = CreateArrayRept(CreateArrayRept(0, 0), 0);
+   If (&pointsToCheck = Null Or
+         &pointsToCheck.Len = 0) Then
+      For &y = 1 To &grid.Len
+         For &x = 1 To &grid [&y].Len
+            If (&grid [&y, &x] = "@" And
+                  %This.IsRollRemovable(&x, &y)) Then
+               &accessibleRolls.Push(CreateArray(&x, &y));
+            End-If;
+         End-For;
+      End-For;
+   Else
+      For &z = 1 To &pointsToCheck.Len
+         &x = &pointsToCheck [&z][1];
+         &y = &pointsToCheck [&z][2];
+         If (&grid [&y, &x] = "@" And
+               %This.IsRollRemovable(&x, &y)) Then
+            &accessibleRolls.Push(CreateArray(&x, &y));
+         End-If;
+      End-For;
+      
+   End-If;
+   Return &accessibleRolls;
+end-method;
+
+method IsRollRemovable
+   /+ &x as Number, +/
+   /+ &y as Number +/
+   /+ Returns Boolean +/
+   If (&grid [&y, &x] = "@") Then
+      Local array of string &neighbors = %Super.Grid.GetNeighbors(&grid, &x, &y, True);
+      
+      Local number &neighborRolls = 0;
+      Local number &z;
+      For &z = 1 To &neighbors.Len
+         If (&neighbors [&z] = "@") Then
+            &neighborRolls = &neighborRolls + 1;
+         End-If;
+      End-For;
+      Return (&neighborRolls < 4);
+   Else
+      Return False;
+   End-If;
+end-method;
+
+method RemoveRolls
+   /+ &coords as Array2 of Number +/
+   /+ Returns Array2 of Number +/
+   Local array of array of number &nextChecks = CreateArrayRept(CreateArrayRept(0, 0), 0);
+   
+   Local number &x, &y;
+   Local number &index, &index2;
+   Local array of string &coordKeys = CreateArrayRept("", 0);
+   For &index = 1 To &coords.Len
+      &x = &coords [&index][1];
+      &y = &coords [&index][2];
+      
+      If (&grid [&y, &x] <> "@") Then
+         Continue;
+      End-If;
+      
+      &grid [&y, &x] = "x";
+      Local array of array of number &neighbors = %Super.Grid.GetNeighborCoords(&width, &height, &x, &y, True);
+      For &index2 = 1 To &neighbors.Len
+         &x = &neighbors [&index2][1];
+         &y = &neighbors [&index2][2];
+         If (&grid [&y, &x] = "@") Then
+            Local string &coordKey = &x | "," | &y;
+            If (&coordKeys.Find(&coordKey) = 0) Then
+               &nextChecks.Push(CreateArray(&x, &y));
+               &coordKeys.Push(&x | "," | &y);
+            End-If;
+         End-If;
+      End-For;
+      
+   End-For;
+   
+   Return &nextChecks;
+   
+end-method;
+
