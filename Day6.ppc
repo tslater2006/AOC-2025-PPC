@@ -1,0 +1,158 @@
+import AOC2025:BaseDay;
+
+class Day6 extends AOC2025:BaseDay
+   method ParseInput(); /* Implements AOC2025:BaseDay.ParseInput */
+   method SolvePart1() Returns string; /* Implements AOC2025:BaseDay.SolvePart1 */
+   method SolvePart2() Returns string; /* Implements AOC2025:BaseDay.SolvePart2 */
+   method Day6();
+private
+   method GetValuesFromLine(&l As string) Returns array of string;
+   
+   instance array of array of string &grid;
+end-class;
+
+method Day6
+   %Super = create AOC2025:BaseDay(6, False);
+   %This.Developing = True;
+end-method;
+
+method ParseInput
+   /+ Extends/implements AOC2025:BaseDay.ParseInput +/
+   
+   /* No input parsing for part 1 because we are going to parse it via Split() as part of the calculations */
+   
+   /* Part 2 parsing */
+   &grid = CreateArrayRept(CreateArrayRept("", 0), 0);
+   
+   Local integer &x;
+   
+   For &x = 1 To %This.Lines.Len
+      &grid.Push(Split(%This.Lines [&x], ""));
+   End-For;
+   
+   /* Fix line length for final line due to psoft trimming the HTML text */
+   While &grid [&grid.Len].Len < &grid [1].Len
+      &grid [&grid.Len].Push(" ");
+   End-While;
+   
+end-method;
+
+method SolvePart1
+   /+ Returns String +/
+   /+ Extends/implements AOC2025:BaseDay.SolvePart1 +/
+   Local string &lastLine = %This.Lines [%This.Lines.Len];
+   Local array of string &operators = %This.GetValuesFromLine(&lastLine);
+   
+   %This.Print("Found " | &operators.Len | " operators: " | &operators.Join());
+   Local array of number &runningTotals = CreateArrayRept(0, 0);
+   Local array of string &columnValues = %This.GetValuesFromLine(%This.Lines [1]);
+   Local integer &x, &y;
+   
+   For &x = 1 To &columnValues.Len
+      &runningTotals.Push(Value(&columnValues [&x]));
+   End-For;
+   For &x = 2 To %This.Lines.Len - 1
+      &columnValues = %This.GetValuesFromLine(%This.Lines [&x]);
+      For &y = 1 To &columnValues.Len
+         
+         Evaluate &operators [&y]
+         When = "+"
+            &runningTotals [&y] = &runningTotals [&y] + Value(&columnValues [&y]);
+            Break;
+         When = "*"
+            &runningTotals [&y] = &runningTotals [&y] * Value(&columnValues [&y]);
+            Break;
+         End-Evaluate;
+      End-For;
+   End-For;
+   Local number &grandTotal = 0;
+   For &x = 1 To &runningTotals.Len
+      &grandTotal = &grandTotal + &runningTotals [&x];
+   End-For;
+   Return String(&grandTotal);
+end-method;
+
+
+method SolvePart2
+   /+ Returns String +/
+   /+ Extends/implements AOC2025:BaseDay.SolvePart2 +/
+   
+   Local number &total, &accumulator, &val;
+   Local string &char;
+   Local string &operator = "";
+   
+   Local integer &x, &y;
+   Local integer &width = &grid [1].Len;
+   Local integer &height = &grid.Len;
+   
+   For &x = 1 To &width
+      For &y = 1 To &height
+         &char = &grid [&y][&x];
+         
+         /* end of column? */
+         If (&y = &height) Then
+            If &val = 0 Then
+               Continue;
+            End-If;
+            
+            /* Found an operator */
+            If (&char = "*" Or
+                  &char = "+") Then
+               &operator = &char;
+               
+               /* add the previous accumulator total */
+               &total = &total + &accumulator;
+               
+               /* Set accumulator to the new first number */
+               &accumulator = &val;
+            Else
+               /* Process next number with operator */
+               Evaluate &operator
+               When "*"
+                  &accumulator = &accumulator * &val;
+                  Break;
+               When "+"
+                  &accumulator = &accumulator + &val;
+                  Break;
+               End-Evaluate;
+            End-If;
+            
+            /* zero out our variable used to build the numbers */
+            &val = 0;
+            Continue;
+         End-If;
+         
+         /* empty space */
+         If &char = " " Then
+            Continue;
+         End-If;
+         
+         /* Continue to build the number digit by digit */
+         &val = (&val * 10 + Value(&char));
+         
+      End-For;
+   End-For;
+   
+   /* Add the final accumulator */
+   &total = &total + &accumulator;
+   
+   Return String(&total);
+end-method;
+
+method GetValuesFromLine
+   /+ &l as String +/
+   /+ Returns Array of String +/
+   
+   Local array of string &parts = Split(&l, " ");
+   Local array of string &values = CreateArrayRept("", 0);
+   Local integer &x;
+   For &x = 1 To &parts.Len
+      Local string &op = LTrim(RTrim(&parts [&x]));
+      If (&op <> "") Then
+         &values.Push(&op);
+      End-If;
+      
+   End-For;
+   Return &values;
+end-method;
+
