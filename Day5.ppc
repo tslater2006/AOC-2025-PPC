@@ -1,0 +1,143 @@
+import AOC2025:BaseDay;
+import AOC_IS_TSLATER:Utils:Range;
+
+class Day5 extends AOC2025:BaseDay
+   method ParseInput(); /* Implements AOC2025:BaseDay.ParseInput */
+   method SolvePart1() Returns string; /* Implements AOC2025:BaseDay.SolvePart1 */
+   method SolvePart2() Returns string; /* Implements AOC2025:BaseDay.SolvePart2 */
+   method Day5();
+private
+   
+   method CollapseRanges();
+   
+   
+   instance array of AOC_IS_TSLATER:Utils:Range &ranges;
+   instance array of number &ingredientIDs;
+end-class;
+
+method Day5
+   %Super = create AOC2025:BaseDay(5, False);
+   
+   &ranges = CreateArrayRept(create AOC_IS_TSLATER:Utils:Range(0, 0), 0);
+   &ingredientIDs = CreateArrayRept(0, 0);
+   
+end-method;
+
+method ParseInput
+   /+ Extends/implements AOC2025:BaseDay.ParseInput +/
+   
+   Local integer &x;
+   Local boolean &foundBlank = False;
+   For &x = 1 To %This.Lines.Len
+      Local string &line = %This.Lines [&x];
+      
+      If (LTrim(&line) = "") Then
+         &foundBlank = True;
+         Continue;
+      End-If;
+      
+      If ( Not &foundBlank) Then
+         Local array of string &parts = Split(&line, "-");
+         Local AOC_IS_TSLATER:Utils:Range &r = create AOC_IS_TSLATER:Utils:Range(Value(&parts [1]), Value(&parts [2]));
+         &ranges.Push(&r);
+      Else
+         &ingredientIDs.Push(Value(&line));
+      End-If;
+   End-For;
+   
+   %This.Print("Parsed " | &ranges.Len | " ranges and " | &ingredientIDs.Len | " ingredient IDs.");
+end-method;
+
+method SolvePart1
+   /+ Returns String +/
+   /+ Extends/implements AOC2025:BaseDay.SolvePart1 +/
+   
+   Local integer &x, &y, &freshCount;
+   For &x = 1 To &ingredientIDs.Len
+      
+      For &y = 1 To &ranges.Len
+         If (&ingredientIDs [&x] >= &ranges [&y].Start And
+               &ingredientIDs [&x] <= &ranges [&y].End) Then
+            &freshCount = &freshCount + 1;
+            Break;
+         End-If;
+      End-For;
+      
+   End-For;
+   
+   Return String(&freshCount);
+end-method;
+
+
+method SolvePart2
+   /+ Returns String +/
+   /+ Extends/implements AOC2025:BaseDay.SolvePart2 +/
+   %This.CollapseRanges();
+   Local number &x, &totalValidCount;
+   For &x = 1 To &ranges.Len
+      Local number &rangeSpan = (&ranges [&x].End - &ranges [&x].Start) + 1;
+      &totalValidCount = &totalValidCount + &rangeSpan;
+   End-For;
+   
+   Return String(&totalValidCount);
+end-method;
+
+method CollapseRanges
+   
+   Local array of AOC_IS_TSLATER:Utils:Range &newRanges = CreateArrayRept(&ranges [1], 0);
+   
+   Local integer &x, &y;
+   
+   While True
+      Local number &mergeCount = 0;
+      For &x = 1 To &ranges.Len
+         Local AOC_IS_TSLATER:Utils:Range &currentRange = &ranges [&x];
+         rem %This.Print("Looking at range: " | &currentRange.Start | " - " | &currentRange.End);
+         Local boolean &rangeMerged = False;
+         For &y = 1 To &newRanges.Len
+            Local AOC_IS_TSLATER:Utils:Range &testRange = &newRanges [&y];
+            
+            If (
+               /* start is between target start/end */
+               (&currentRange.Start >= &testRange.Start And
+                  &currentRange.Start <= &testRange.End)
+                  /* end is between target start/end*/
+                  Or
+                  (&currentRange.End >= &testRange.Start And
+                     &currentRange.End <= &testRange.End)
+                  /* current range fully consumes the target range */
+                  Or
+                  (&currentRange.Start < &testRange.Start And
+                     &currentRange.End > &testRange.End)) Then
+               
+               /* This range overlaps the test range somehow */
+               
+               rem %This.Print("Found an overlap with: " | &testRange.Start | " - " | &testRange.End);
+               
+               &testRange.Start = Min(&testRange.Start, &currentRange.Start);
+               &testRange.End = Max(&testRange.End, &currentRange.End);
+               &rangeMerged = True;
+               Break;
+            End-If;
+         End-For;
+         
+         If ( Not &rangeMerged) Then
+            rem %This.Print("Range does not overlap any other ranges so far.");
+            &newRanges.Push(&currentRange);
+         Else
+            &mergeCount = &mergeCount + 1;
+         End-If;
+         
+      End-For;
+      
+      If (&mergeCount = 0) Then
+         Break;
+      Else
+         &ranges = &newRanges;
+         &newRanges = CreateArrayRept(&ranges [1], 0);
+      End-If;
+      
+   End-While;
+   
+end-method;
+
