@@ -1,0 +1,13 @@
+class Range
+   method Range(&s As number, &e As number);
+   property number Start;
+   property number End;
+end-class;
+
+method Range
+   /+ &s as Number, +/
+   /+ &e as Number +/
+   %This.Start = &s;
+   %This.End = &e;
+end-method;
+

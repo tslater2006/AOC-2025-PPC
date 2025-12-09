@@ -1,5 +1,5 @@
 import AOC2025:BaseDay;
-import AOC_IS_TSLATER:Utils:Range;
+import AOC_IS_TSLATER:Helpers:Day5:Range;
 
 class Day5 extends AOC2025:BaseDay
    method ParseInput(); /* Implements AOC2025:BaseDay.ParseInput */
@@ -11,14 +11,14 @@ private
    method CollapseRanges();
    
    
-   instance array of AOC_IS_TSLATER:Utils:Range &ranges;
+   instance array of AOC_IS_TSLATER:Helpers:Day5:Range &ranges;
    instance array of number &ingredientIDs;
 end-class;
 
 method Day5
    %Super = create AOC2025:BaseDay(5, False);
    
-   &ranges = CreateArrayRept(create AOC_IS_TSLATER:Utils:Range(0, 0), 0);
+   &ranges = CreateArrayRept(create AOC_IS_TSLATER:Helpers:Day5:Range(0, 0), 0);
    &ingredientIDs = CreateArrayRept(0, 0);
    
 end-method;
@@ -38,14 +38,14 @@ method ParseInput
       
       If ( Not &foundBlank) Then
          Local array of string &parts = Split(&line, "-");
-         Local AOC_IS_TSLATER:Utils:Range &r = create AOC_IS_TSLATER:Utils:Range(Value(&parts [1]), Value(&parts [2]));
+         Local AOC_IS_TSLATER:Helpers:Day5:Range &r = create AOC_IS_TSLATER:Helpers:Day5:Range(Value(&parts [1]), Value(&parts [2]));
          &ranges.Push(&r);
       Else
          &ingredientIDs.Push(Value(&line));
       End-If;
    End-For;
    
-   %This.Print("Parsed " | &ranges.Len | " ranges and " | &ingredientIDs.Len | " ingredient IDs.");
+   rem %This.Print("Parsed " | &ranges.Len | " ranges and " | &ingredientIDs.Len | " ingredient IDs.");
 end-method;
 
 method SolvePart1
@@ -84,18 +84,18 @@ end-method;
 
 method CollapseRanges
    
-   Local array of AOC_IS_TSLATER:Utils:Range &newRanges = CreateArrayRept(&ranges [1], 0);
+   Local array of AOC_IS_TSLATER:Helpers:Day5:Range &newRanges = CreateArrayRept(&ranges [1], 0);
    
    Local integer &x, &y;
    
    While True
       Local number &mergeCount = 0;
       For &x = 1 To &ranges.Len
-         Local AOC_IS_TSLATER:Utils:Range &currentRange = &ranges [&x];
+         Local AOC_IS_TSLATER:Helpers:Day5:Range &currentRange = &ranges [&x];
          rem %This.Print("Looking at range: " | &currentRange.Start | " - " | &currentRange.End);
          Local boolean &rangeMerged = False;
          For &y = 1 To &newRanges.Len
-            Local AOC_IS_TSLATER:Utils:Range &testRange = &newRanges [&y];
+            Local AOC_IS_TSLATER:Helpers:Day5:Range &testRange = &newRanges [&y];
             
             If (
                /* start is between target start/end */

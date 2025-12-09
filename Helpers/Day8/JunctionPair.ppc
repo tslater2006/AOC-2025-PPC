@@ -1,0 +1,31 @@
+import AOC_IS_TSLATER:Helpers:Day8:Junction;
+
+class JunctionPair
+   method JunctionPair(&first As AOC_IS_TSLATER:Helpers:Day8:Junction, &second As AOC_IS_TSLATER:Helpers:Day8:Junction);
+   
+   property AOC_IS_TSLATER:Helpers:Day8:Junction A;
+   property AOC_IS_TSLATER:Helpers:Day8:Junction B;
+   property number Distance;
+end-class;
+
+method JunctionPair
+   /+ &first as AOC_IS_TSLATER:Helpers:Day8:Junction, +/
+   /+ &second as AOC_IS_TSLATER:Helpers:Day8:Junction +/
+   %This.A = &first;
+   %This.B = &second;
+   
+   Local number &deltaX = (%This.A.X - %This.B.X);
+   Local number &deltaX2 = &deltaX * &deltaX;
+   
+   Local number &deltaY = (%This.A.Y - %This.B.Y);
+   Local number &deltaY2 = &deltaY * &deltaY;
+   
+   Local number &deltaZ = (%This.A.Z - %This.B.Z);
+   Local number &deltaZ2 = &deltaZ * &deltaZ;
+   
+   Local number &sum = &deltaX2 + &deltaY2 + &deltaZ2;
+   
+   /* Calculate straight line distance */
+   %This.Distance = &sum;
+end-method;
+

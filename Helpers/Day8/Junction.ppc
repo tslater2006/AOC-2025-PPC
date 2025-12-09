@@ -1,0 +1,26 @@
+import AOC_IS_TSLATER:Helpers:Day8:Circuit;
+
+class Junction
+   method Junction(&p1 As number, &p2 As number, &p3 As number);
+   method ToString() Returns string;
+   property number X;
+   property number Y;
+   property number Z;
+   
+   property AOC_IS_TSLATER:Helpers:Day8:Circuit Circuit;
+end-class;
+
+method Junction
+   /+ &p1 as Number, +/
+   /+ &p2 as Number, +/
+   /+ &p3 as Number +/
+   %This.X = &p1;
+   %This.Y = &p2;
+   %This.Z = &p3;
+end-method;
+
+method ToString
+   /+ Returns String +/
+   Return (%This.X | "," | %This.Y | "," | %This.Z);
+end-method;
+

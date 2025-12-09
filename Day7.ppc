@@ -1,0 +1,127 @@
+import AOC2025:BaseDay;
+
+class Day7 extends AOC2025:BaseDay
+   method ParseInput(); /* Implements AOC2025:BaseDay.ParseInput */
+   method SolvePart1() Returns string; /* Implements AOC2025:BaseDay.SolvePart1 */
+   method SolvePart2() Returns string; /* Implements AOC2025:BaseDay.SolvePart2 */
+   method Day7()
+private
+   instance number &startX;
+   instance array of array of boolean &splitterGrid;
+   instance number &height, &width;
+end-class;
+
+method Day7
+   %Super = create AOC2025:BaseDay(7, False);
+   %This.Developing = False;
+end-method;
+
+method ParseInput
+   /+ Extends/implements AOC2025:BaseDay.ParseInput +/
+   &startX = Find("S", %This.Lines [1]);
+   
+   &height = %This.Lines.Len;
+   &width = Len(%This.Lines [1]);
+   
+   &splitterGrid = CreateArrayRept(CreateArrayRept( False, 0), &height);
+   
+   Local integer &y;
+   
+   For &y = 2 To %This.Lines.Len
+      &splitterGrid [&y] = CreateArrayRept( False, &width);
+      
+      Local number &splitterIndex = Find("^", %This.Lines [&y]);
+      
+      While &splitterIndex > 0
+         &splitterGrid [&y][&splitterIndex] = True;
+         &splitterIndex = Find("^", %This.Lines [&y], &splitterIndex + 1);
+      End-While;
+      
+   End-For;
+   
+end-method;
+
+
+method SolvePart1
+   /+ Returns String +/
+   /+ Extends/implements AOC2025:BaseDay.SolvePart1 +/
+   Local array of boolean &tachyonBeams = CreateArrayRept( False, &width);
+   
+   &tachyonBeams [&startX] = True;
+   rem %This.Print("Tachyon beams: " | &tachyonBeams.Join());
+   Local integer &x, &y;
+   Local number &beamSplits;
+   For &y = 2 To %This.Lines.Len
+      For &x = 1 To &tachyonBeams.Len
+         
+         If Not &tachyonBeams [&x] Then
+            Continue
+         End-If;
+         If (&y + 1 > &height) Then
+            &tachyonBeams [&x] = False;
+            Continue;
+         End-If;
+         If (&splitterGrid [&y + 1][&x]) Then
+            &beamSplits = &beamSplits + 1;
+            &tachyonBeams [&x] = False;
+            If (&x > 1) Then
+               &tachyonBeams [&x - 1] = True;
+            End-If;
+            If (&x < &width) Then
+               &tachyonBeams [&x + 1] = True;
+            End-If;
+         End-If;
+      End-For;
+   End-For;
+   
+   Return String(&beamSplits);
+end-method;
+
+
+method SolvePart2
+   /+ Returns String +/
+   /+ Extends/implements AOC2025:BaseDay.SolvePart2 +/
+   Local array of number &tachyonTimelines = CreateArrayRept(0, &width);
+   
+   
+   &tachyonTimelines [&startX] = 1;
+   rem %This.Print("Tachyon beams: " | &tachyonBeams.Join());
+   Local integer &x, &y;
+   For &y = 2 To %This.Lines.Len
+      Local array of number &nextTachyonTimelines = CreateArrayRept(0, &width);
+      rem %This.Print("Tachyon Timelines     : " | &tachyonTimelines.Join());
+      For &x = 1 To &tachyonTimelines.Len
+         
+         If &tachyonTimelines [&x] <= 0 Then
+            Continue
+         End-If;
+         rem %This.Print("Current timeline count: " | &tachyonTimelines [&x]);
+         If (&y + 1 > &height) Then
+            &nextTachyonTimelines [&x] = &nextTachyonTimelines [&x] + &tachyonTimelines [&x];
+            Continue;
+         End-If;
+         
+         If (&splitterGrid [&y + 1][&x]) Then
+            rem %This.Print("Hit a splitter for timeline count: " | &tachyonTimelines [&x]);
+            If (&x > 1) Then
+               &nextTachyonTimelines [&x - 1] = &nextTachyonTimelines [&x - 1] + &tachyonTimelines [&x];
+            End-If;
+            If (&x < &width) Then
+               &nextTachyonTimelines [&x + 1] = &nextTachyonTimelines [&x + 1] + &tachyonTimelines [&x];
+            End-If;
+            &nextTachyonTimelines [&x] = 0;
+         Else
+            &nextTachyonTimelines [&x] = &nextTachyonTimelines [&x] + &tachyonTimelines [&x];
+         End-If;
+      End-For;
+      &tachyonTimelines = &nextTachyonTimelines.Clone();
+   End-For;
+   Local number &timelineCount = 0;
+   For &x = 1 To &tachyonTimelines.Len
+      If (&tachyonTimelines [&x] >= 0) Then
+         &timelineCount = &timelineCount + &tachyonTimelines [&x];
+      End-If;
+   End-For;
+   Return String(&timelineCount);
+end-method;
+

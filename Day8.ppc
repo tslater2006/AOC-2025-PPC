@@ -1,0 +1,133 @@
+import AOC2025:BaseDay;
+import AOC_IS_TSLATER:Helpers:Day8:Junction;
+import AOC_IS_TSLATER:Helpers:Day8:JunctionPair;
+import AOC_IS_TSLATER:Helpers:Day8:Circuit;
+import AOC_IS_TSLATER:Helpers:Day8:MinHeap;
+
+class Day8 extends AOC2025:BaseDay
+   method ParseInput(); /* Implements AOC2025:BaseDay.ParseInput */
+   method SolvePart1() Returns string; /* Implements AOC2025:BaseDay.SolvePart1 */
+   method SolvePart2() Returns string; /* Implements AOC2025:BaseDay.SolvePart2 */
+   method Day8()
+private
+   
+   method ConnectNextNearest() Returns AOC_IS_TSLATER:Helpers:Day8:JunctionPair;
+   
+   instance number &startX;
+   instance array of array of boolean &splitterGrid;
+   instance number &height, &width;
+   
+   instance array of AOC_IS_TSLATER:Helpers:Day8:Junction &junctions;
+   instance array of any &sortedPairs;
+   instance array of any &junctionPairs;
+   instance AOC_IS_TSLATER:Helpers:Day8:MinHeap &minHeap;
+   instance array of any &circuits;
+end-class;
+
+method Day8
+   %Super = create AOC2025:BaseDay(8, False);
+   %This.Developing = True;
+end-method;
+
+method ParseInput
+   /+ Extends/implements AOC2025:BaseDay.ParseInput +/
+   Local AOC_IS_TSLATER:Helpers:Day8:Junction &currentJunction;
+   &junctions = CreateArrayRept(&currentJunction, 0);
+   
+   Local integer &x;
+   For &x = 1 To %This.Lines.Len
+      Local array of string &parts = Split(%This.Lines [&x], ",");
+      &currentJunction = create AOC_IS_TSLATER:Helpers:Day8:Junction(Value(&parts [1]), Value(&parts [2]), Value(&parts [3]));
+      &junctions.Push(&currentJunction);
+   End-For;
+end-method;
+
+method ConnectNextNearest
+   /+ Returns AOC_IS_TSLATER:Helpers:Day8:JunctionPair +/
+   Local AOC_IS_TSLATER:Helpers:Day8:JunctionPair &closestPair = &minHeap.GetMin();
+   &minHeap.DeleteMin();
+   
+   /* if neither have a circuit, make one */
+   If (&closestPair.A.Circuit = Null And
+         &closestPair.B.Circuit = Null) Then
+      Local AOC_IS_TSLATER:Helpers:Day8:Circuit &newCircuit = create AOC_IS_TSLATER:Helpers:Day8:Circuit();
+      &circuits.Push(&newCircuit);
+      &newCircuit.AddJunctionBox(&closestPair.A);
+      &newCircuit.AddJunctionBox(&closestPair.B);
+      Return &closestPair;
+   End-If;
+   
+   If (&closestPair.A.Circuit <> Null And
+         &closestPair.B.Circuit = Null) Then
+      &closestPair.A.Circuit.AddJunctionBox(&closestPair.B);
+      Return &closestPair;
+   End-If;
+   
+   If (&closestPair.A.Circuit = Null And
+         &closestPair.B.Circuit <> Null) Then
+      &closestPair.B.Circuit.AddJunctionBox(&closestPair.A);
+      Return &closestPair;
+   End-If;
+   
+   If (&closestPair.A.Circuit <> Null And
+         &closestPair.B.Circuit <> Null And
+         &closestPair.A.Circuit <> &closestPair.B.Circuit) Then
+      Local AOC_IS_TSLATER:Helpers:Day8:Circuit &bCircuit = &closestPair.B.Circuit;
+      
+      &closestPair.A.Circuit.ConnectCircuit(&closestPair.B.Circuit);
+      
+      Local number &indexOfB = &circuits.Find(&bCircuit);
+      &circuits.Replace(&indexOfB, 1);
+      Return &closestPair;
+   End-If;
+   Return &closestPair;
+end-method;
+
+method SolvePart1
+   /+ Returns String +/
+   /+ Extends/implements AOC2025:BaseDay.SolvePart1 +/
+   
+   /* Generate all junction box pairs */
+   &junctionPairs = CreateArrayAny();
+   &circuits = CreateArrayAny();
+   
+   Local number &x, &y;
+   For &x = 1 To &junctions.Len
+      For &y = &x + 1 To &junctions.Len
+         &junctionPairs.Push(create AOC_IS_TSLATER:Helpers:Day8:JunctionPair(&junctions [&x], &junctions [&y]));
+      End-For;
+   End-For;
+   
+   &minHeap = create AOC_IS_TSLATER:Helpers:Day8:MinHeap(&junctionPairs.Len);
+   
+   For &x = 1 To &junctionPairs.Len
+      &minHeap.Insert(&junctionPairs [&x]);
+   End-For;
+   
+   For &x = 1 To 1000
+      Local AOC_IS_TSLATER:Helpers:Day8:JunctionPair &closestPair = %This.ConnectNextNearest();
+   End-For;
+   
+   /* Count up the # of junction boxes with no circuit */
+   Local array of any &sortedCircuits = %This.Query.With(&circuits).Sort("JunctionBoxes.Len", False).ToArray();
+   Local number &mul = 1;
+   For &x = 1 To 3
+      &mul = &mul * &sortedCircuits [&x].JunctionBoxes.Len;
+   End-For;
+   Return String(&mul);
+end-method;
+
+
+method SolvePart2
+   /+ Returns String +/
+   /+ Extends/implements AOC2025:BaseDay.SolvePart2 +/
+   Local number &connectionCount = 1000;
+   Local AOC_IS_TSLATER:Helpers:Day8:JunctionPair &closestPair;
+   While &circuits.Len > 1 Or
+         &circuits [1].JunctionBoxes.Len <> &junctions.Len
+      &closestPair = %This.ConnectNextNearest();
+      &connectionCount = &connectionCount + 1;
+   End-While;
+   Return String(&closestPair.A.X * &closestPair.B.X);
+end-method;
+

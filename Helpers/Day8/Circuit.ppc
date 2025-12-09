@@ -1,0 +1,45 @@
+import AOC_IS_TSLATER:Helpers:Day8:Junction;
+
+class Circuit
+   method Circuit();
+   method AddJunctionBox(&junctionBox As AOC_IS_TSLATER:Helpers:Day8:Junction);
+   method ConnectCircuit(&other As AOC_IS_TSLATER:Helpers:Day8:Circuit);
+   property array of AOC_IS_TSLATER:Helpers:Day8:Junction JunctionBoxes;
+   method ToString() Returns string;
+end-class;
+
+method Circuit
+   Local AOC_IS_TSLATER:Helpers:Day8:Junction &junctionType;
+   %This.JunctionBoxes = CreateArrayRept(&junctionType, 0);
+end-method;
+
+method AddJunctionBox
+   /+ &junctionBox as AOC_IS_TSLATER:Helpers:Day8:Junction +/
+   
+   %This.JunctionBoxes.Push(&junctionBox);
+   &junctionBox.Circuit = %This;
+end-method;
+
+method ConnectCircuit
+   /+ &other as AOC_IS_TSLATER:Helpers:Day8:Circuit +/
+   
+   Local integer &x;
+   For &x = 1 To &other.JunctionBoxes.Len
+      %This.AddJunctionBox(&other.JunctionBoxes [&x]);
+   End-For;
+   
+end-method;
+
+method ToString
+   /+ Returns String +/
+   Local string &s = "";
+   Local number &x;
+   For &x = 1 To %This.JunctionBoxes.Len
+      &s = &s | %This.JunctionBoxes [&x].ToString();
+      If (&x < %This.JunctionBoxes.Len) Then
+         &s = &s | " | ";
+      End-If;
+   End-For;
+   Return &s;
+end-method;
+

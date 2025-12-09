@@ -1,0 +1,128 @@
+import AOC_IS_TSLATER:Helpers:Day8:JunctionPair;
+
+class MinHeap
+   property array of AOC_IS_TSLATER:Helpers:Day8:JunctionPair Items;
+   property number Size;
+   property number Capacity;
+   
+   method Parent(&i As number) Returns number;
+   method LeftChild(&i As number) Returns number;
+   method RightChild(&i As number) Returns number;
+   
+   method GetMin() Returns any;
+   
+   method MinHeap(&maxItems As number);
+   method Insert(&item As AOC_IS_TSLATER:Helpers:Day8:JunctionPair);
+   method DeleteMin();
+   method Heapify(&i As number);
+   
+   method PrintHeap() Returns string;
+   
+end-class;
+
+method PrintHeap
+   /+ Returns String +/
+   Local string &s = "";
+   Local integer &x;
+   For &x = 1 To %This.Size
+      &s = &s | %This.Items [&x].Distance | " -> ";
+   End-For;
+   Return &s;
+end-method;
+
+method MinHeap
+   /+ &maxItems as Number +/
+   Local AOC_IS_TSLATER:Helpers:Day8:JunctionPair &type;
+   %This.Capacity = &maxItems;
+   %This.Items = CreateArrayRept(&type, &maxItems);
+   %This.Size = 0;
+end-method;
+
+method Insert
+   /+ &item as AOC_IS_TSLATER:Helpers:Day8:JunctionPair +/
+   If (%This.Size = %This.Capacity) Then
+      throw CreateException(0, 0, "Heap size exceeded");
+   End-If;
+   %This.Size = %This.Size + 1;
+   %This.Items [%This.Size] = &item;
+   
+   Local number &curr = %This.Size;
+   Local number &parent = %This.Parent(&curr);
+   While (&curr > 1 And
+         %This.Items [&parent].Distance > %This.Items [&curr].Distance)
+      
+      Local AOC_IS_TSLATER:Helpers:Day8:JunctionPair &temp = %This.Items [&parent];
+      %This.Items [&parent] = %This.Items [&curr];
+      %This.Items [&curr] = &temp;
+      
+      &curr = &parent;
+      &parent = %This.Parent(&curr);
+   End-While;
+   
+end-method;
+
+method DeleteMin
+   If (%This.Size = 0) Then
+      Return;
+   End-If;
+   
+   Local AOC_IS_TSLATER:Helpers:Day8:JunctionPair &lastElement = %This.Items [%This.Size];
+   %This.Items [1] = &lastElement;
+   %This.Size = %This.Size - 1;
+   
+   %This.Heapify(1);
+   
+end-method;
+
+method Heapify
+   /+ &i as Number +/
+   If (%This.Size <= 1) Then
+      Return;
+   End-If;
+   
+   Local number &leftIndex = %This.LeftChild(&i);
+   Local number &rightIndex = %This.RightChild(&i);
+   
+   Local number &smallestIndex = &i;
+   
+   If (&leftIndex <= %This.Size And
+         %This.Items [&leftIndex].Distance < %This.Items [&i].Distance) Then
+      &smallestIndex = &leftIndex;
+   End-If;
+   
+   If (&rightIndex <= %This.Size And
+         %This.Items [&rightIndex].Distance < %This.Items [&leftIndex].Distance) Then
+      &smallestIndex = &rightIndex;
+   End-If;
+   
+   If (&smallestIndex <> &i) Then
+      Local AOC_IS_TSLATER:Helpers:Day8:JunctionPair &temp = %This.Items [&i];
+      %This.Items [&i] = %This.Items [&smallestIndex];
+      %This.Items [&smallestIndex] = &temp;
+      %This.Heapify(&smallestIndex);
+   End-If;
+end-method;
+
+method Parent
+   /+ &i as Number +/
+   /+ Returns Number +/
+   Return Idiv(&i, 2);
+end-method;
+
+method LeftChild
+   /+ &i as Number +/
+   /+ Returns Number +/
+   Return (2 * &i);
+end-method;
+
+method RightChild
+   /+ &i as Number +/
+   /+ Returns Number +/
+   Return (2 * &i + 1);
+end-method;
+
+method GetMin
+   /+ Returns Any +/
+   Return %This.Items [1];
+end-method;
+
